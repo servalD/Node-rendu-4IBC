@@ -1,0 +1,12 @@
+model User {
+    id                Int    @id @unique @default(autoincrement())
+    email             String
+    name              String
+    firstName         String @default("First name")
+    password          String
+    blockchainAddress String @unique
+
+    posts         Posts[]
+    NftToken      NftToken[]
+    NftCollection NftCollection[]
+}

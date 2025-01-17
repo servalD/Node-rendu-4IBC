@@ -1,0 +1,31 @@
+version: "3.8"
+name: cours_4a
+volumes:
+  db_storage:
+  minio_data:
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=0000
+      - POSTGRES_DB=cours_4a
+    ports:
+      - ${DB_PORT}:5432
+    volumes:
+      - db_storage:/var/lib/postgresql/data
+  minio:
+    image: minio/minio
+    restart: always
+    ports:
+      - "9000:9000" # Port pour l'API S3
+      - "9001:9001" # Port pour la console d'administration
+    environment:
+      - MINIO_ROOT_USER=admin # Identifiant admin
+      - MINIO_ROOT_PASSWORD=admin123 # Mot de passe admin
+    volumes:
+      - minio_data:/data # Attache le volume pour les données
+    command: server /data --console-address ":9001" # Commande pour démarrer MinIO avec la console activée
+

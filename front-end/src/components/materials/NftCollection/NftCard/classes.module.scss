@@ -1,0 +1,77 @@
+.root {
+	background-color: #2a2a2a; /* Fond sombre */
+	color: #fff; /* Texte en blanc pour contraster avec le fond */
+	border-radius: 10px;
+	padding: 20px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	width: 320px;
+	margin: 20px auto;
+	text-align: center;
+	transition: transform 0.2s ease-in-out;
+
+	&:hover {
+		transform: scale(1.05);
+	}
+
+	.info {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 15px;
+	}
+
+	.info img {
+		max-width: 100%;
+		height: auto;
+		border-radius: 8px;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	}
+
+	.info span {
+		font-size: 14px;
+		color: #4caf50; /* Vert vif pour les étiquettes */
+		font-weight: bold;
+	}
+
+	.address {
+		display: inline-block;
+		background-color: #333; /* Fond sombre pour l'adresse */
+		padding: 8px 12px;
+		border-radius: 8px;
+		cursor: pointer;
+		word-break: break-all;
+		transition: background-color 0.3s ease;
+
+		&:hover {
+			background-color: #444; /* Fond plus clair au survol */
+		}
+	}
+
+	.copy-icon {
+		margin-left: 8px;
+		cursor: pointer;
+		font-size: 16px;
+		color: #4caf50; /* Vert vif pour l'icône */
+		transition: color 0.3s ease;
+
+		&:hover {
+			color: #81c784; /* Vert plus clair au survol */
+		}
+	}
+
+	.copy-message {
+		font-size: 12px;
+		color: #81c784; /* Vert clair pour le message de succès */
+		margin-top: 10px;
+		opacity: 0;
+		transition: opacity 0.3s;
+		&.show {
+			opacity: 1;
+		}
+	}
+}
+
+.loading {
+	color: #ff9800; /* Couleur pour le texte de chargement */
+	font-size: 16px;
+}

@@ -1,0 +1,47 @@
+.account {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background-color: #1e1e1e;
+	padding: 8px 12px;
+	border-radius: 20px;
+	color: #ffffff;
+	font-size: 14px;
+
+	.avatar {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		border: 2px solid #4caf50;
+	}
+
+	.details {
+		display: flex;
+		flex-direction: column;
+
+		.ensName {
+			font-weight: 600;
+			color: #ffffff;
+		}
+
+		.address {
+			font-size: 12px;
+			color: #a5a5a5;
+		}
+	}
+
+	.disconnect {
+		background-color: #ff6b6b;
+		border: none;
+		border-radius: 6px;
+		color: #ffffff;
+		padding: 6px 10px;
+		font-size: 12px;
+		cursor: pointer;
+		transition: background-color 0.3s ease;
+
+		&:hover {
+			background-color: #ff3b3b;
+		}
+	}
+}
