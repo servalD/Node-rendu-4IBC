@@ -1,4 +1,5 @@
 import AWS from "aws-sdk";
+import logger from "./LoggerService";
 
 export default class S3Service {
   private static s3service: S3Service;
@@ -33,7 +34,7 @@ export default class S3Service {
       })
       .promise();
 
-    console.log("File uploaded to S3 : ", key);
+    logger.info(`File uploaded to S3 : ${key}`);
   }
 
   public async getUrl(key: string, bucketName: string = "cours4a") {

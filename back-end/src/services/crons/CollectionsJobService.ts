@@ -4,6 +4,7 @@ import DbClient from "../../databases/DbClient";
 import logger from "../LoggerService";
 import NftCollection from "../../blockchain/contracts/NftCollection";
 import P from "ts-pattern";
+import CollectionService from "../CollectionsService";
 
 const dbClient: DbClient = DbClient.getInstance();
 const blockchainClient: BlockchainClient = BlockchainClient.getInstance();
@@ -15,6 +16,7 @@ enum ContractEvent {
 
 type TransactionData = {
   collectionId: string;
+  collectionAddress: Address;
   transactionHash: string;
   blockNumber: bigint;
   eventName: ContractEvent;
@@ -48,19 +50,17 @@ export default class CollectionsJobService {
       lastBlockSynced = parseInt(lastBlockSyncedConfig.value);
     }
 
-    logger.info(`Last block synced : ${lastBlockSynced}`);
-
     const currentBlock = parseInt(
       (await blockchainClient.publicClient.getBlockNumber()).toString()
     );
-    logger.info(`Current block : ${currentBlock}`);
 
-    if (currentBlock <= lastBlockSynced) {
-      logger.info(`No new block to sync`);
-      return;
-    }
+    logger.info(
+      `Current block : ${currentBlock} | Last block synced : ${lastBlockSynced} | Blocks to sync : ${
+        currentBlock - lastBlockSynced
+      }`
+    );
 
-    logger.info(`Syncing ${currentBlock - lastBlockSynced} blocks...`);
+    if (currentBlock <= lastBlockSynced) return;
 
     const collections = await dbClient.nftCollection.findMany();
 
@@ -87,6 +87,7 @@ export default class CollectionsJobService {
           ).decodeEventLog(log.data, log.topics);
 
           const transactionData: TransactionData = {
+            collectionAddress: collection.contractAddress as Address,
             collectionId: collection.id,
             transactionHash: log.transactionHash,
             blockNumber: log.blockNumber,
@@ -94,41 +95,77 @@ export default class CollectionsJobService {
             eventArgs: decodedLog.args,
           };
 
-          console.log(transactionData);
+          //console.log(transactionData);
+
+          // If the event name is not included in the enum
+          if (!Object.values(ContractEvent).includes(transactionData.eventName))
+            continue;
+
+          await this.processTransaction(transactionData);
         } catch (e) {
           logger.error(
             `Error while syncing collection ${collection.name} at ${collection.contractAddress} : ${e}`
           );
         }
       }
+
+      logger.info(
+        `Collection ${collection.name} at ${collection.contractAddress} synced`
+      );
     }
+
+    await dbClient.config.update({
+      where: { name: "lastBlockSynced" },
+      data: { value: currentBlock.toString() },
+    });
   }
 
-  public processTransaction(transactionData: TransactionData) {
-    P.match(transactionData.eventName)
-      .with(ContractEvent.OwnershipTransferred, () => {
-        this.handleOwnershipTransferred(transactionData);
+  public async processTransaction(transactionData: TransactionData) {
+    await P.match(transactionData.eventName)
+      .with(ContractEvent.OwnershipTransferred, async () => {
+        await this.handleOwnershipTransferred(transactionData);
       })
-      .with(ContractEvent.Transfer, () => {})
+      .with(ContractEvent.Transfer, async () => {
+        await this.handleTransfer(transactionData);
+      })
       .exhaustive();
-
-    // switch (transactionData.eventName) {
-    //   case ContractEvents.OwnershipTransferred:
-    //     this.handleOwnershipTransferred(transactionData);
-    //     break;
-    //   case ContractEvents.Transfer:
-    //     this.handleTransfer(transactionData);
-    //     break;
-    //   default:
-    //     logger.info(`Unknown event ${transactionData.eventName}`);
-    // }
   }
 
-  public handleOwnershipTransferred(transactionData: TransactionData) {
+  public async handleOwnershipTransferred(transactionData: TransactionData) {
     logger.info(`OwnershipTransferred event detected`);
+    const eventsArgs = transactionData.eventArgs as any as {
+      previousOwner: Address;
+      newOwner: Address;
+    };
+
+    await CollectionService.getInstance().updateCollectionOwner({
+      collectionAddress: transactionData.collectionAddress,
+      newOwner: eventsArgs.newOwner,
+    });
   }
 
-  public handleTransfer(transactionData: any) {
+  public async handleTransfer(transactionData: TransactionData) {
+    const eventsArgs = transactionData.eventArgs as any as {
+      from: Address;
+      to: Address;
+      tokenId: bigint;
+    };
+
+    if (eventsArgs.from === "0x0000000000000000000000000000000000000000") {
+      logger.info("Mint event detected");
+      await CollectionService.getInstance().syncTokenFromBlockchain({
+        contractAddress: transactionData.collectionAddress,
+        tokenId: parseInt(eventsArgs.tokenId.toString()),
+      });
+      return;
+    }
+
+    await CollectionService.getInstance().updateTokenOwner({
+      contractAddress: transactionData.collectionAddress,
+      newOwner: eventsArgs.to,
+      tokenId: eventsArgs.tokenId.toString(),
+    });
+
     logger.info(`Transfer event detected`);
   }
 }
