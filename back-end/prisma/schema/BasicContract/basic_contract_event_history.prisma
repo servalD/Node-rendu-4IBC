@@ -1,0 +1,17 @@
+model ContractEventHistory {
+    id              Int    @id @unique @default(autoincrement())
+
+    transactionHash String @unique
+    eventType       String
+    fromAddress     String
+    toAddress       String
+
+    contract        BasicContract @relation(fields: [contractId], references: [id])
+    contractId      Int
+
+    user   User @relation(fields: [userId], references: [id])
+    userId Int
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

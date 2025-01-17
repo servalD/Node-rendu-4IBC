@@ -33,34 +33,8 @@ export default class CollectionsJobService {
     return this.collectionsJobService;
   }
 
-  public async syncAllCollections() {
-    let lastBlockSynced = 0;
-    const lastBlockSyncedConfig = await dbClient.config.findUnique({
-      where: { name: "lastBlockSynced" },
-    });
-
-    if (!lastBlockSyncedConfig) {
-      logger.info(
-        "No lastBlockSynced found in the database, initializing to 0"
-      );
-      await dbClient.config.create({
-        data: { name: "lastBlockSynced", value: "0" },
-      });
-    } else {
-      lastBlockSynced = parseInt(lastBlockSyncedConfig.value);
-    }
-
-    const currentBlock = parseInt(
-      (await blockchainClient.publicClient.getBlockNumber()).toString()
-    );
-
-    logger.info(
-      `Current block : ${currentBlock} | Last block synced : ${lastBlockSynced} | Blocks to sync : ${
-        currentBlock - lastBlockSynced
-      }`
-    );
-
-    if (currentBlock <= lastBlockSynced) return;
+  public async syncAllCollections(lastBlockSynced: number, currentBlock: number) {
+    
 
     const collections = await dbClient.nftCollection.findMany();
 
@@ -114,10 +88,6 @@ export default class CollectionsJobService {
       );
     }
 
-    await dbClient.config.update({
-      where: { name: "lastBlockSynced" },
-      data: { value: currentBlock.toString() },
-    });
   }
 
   public async processTransaction(transactionData: TransactionData) {

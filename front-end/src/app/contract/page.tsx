@@ -7,6 +7,7 @@ import ShowContractValue from "@/components/materials/ShowContractValue";
 import BasicContractMaterial from "@/components/materials/BasicContractMaterial";
 import { useAccount } from "wagmi";
 import classes from "./classes.module.scss";
+import { BasicContractHistory } from "@/components/materials/BasicContractHistory";
 
 Di.setUserService(container.resolve(UserService));
 export default function Contract() {
@@ -18,6 +19,7 @@ export default function Contract() {
 				<>
 					<BasicContractMaterial />
 					<ShowContractValue />
+					<BasicContractHistory />
 				</>
 			)}
 		</div>

@@ -1,0 +1,14 @@
+model BasicContract {
+    id              Int    @id @unique @default(autoincrement())
+    contractAddress String @unique
+    value           String
+    payableValue    String
+
+    history         ContractEventHistory[]
+
+    owner   User @relation(fields: [ownerId], references: [id])
+    ownerId Int
+
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+}

@@ -6,7 +6,9 @@ model User {
     password          String
     blockchainAddress String @unique
 
-    posts         Posts[]
-    NftToken      NftToken[]
-    NftCollection NftCollection[]
+    posts                Posts[]
+    NftToken             NftToken[]
+    NftCollection        NftCollection[]
+    ContractEventHistory ContractEventHistory[]
+    BasicContract        BasicContract[]
 }

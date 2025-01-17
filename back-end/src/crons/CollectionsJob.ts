@@ -1,19 +1,19 @@
 import { CronJob } from "cron";
 import logger from "../services/LoggerService";
-import CollectionsJobService from "../services/crons/CollectionsJobService";
+import JobService from "../services/crons/JobService";
 
-const collectionsJobService = CollectionsJobService.getInstance();
+const jobService = JobService.getInstance();
 
-export default class CollectionsJob {
-  private static collectionsJob: CollectionsJob;
+export default class Job {
+  private static job: Job;
   private cronString: string = "*/5 * * * * *";
   private isRunning: boolean = false;
 
   public static getInstance(cronString: string) {
-    if (!this.collectionsJob) {
-      this.collectionsJob = new CollectionsJob(cronString);
+    if (!this.job) {
+      this.job = new Job(cronString);
     }
-    return this.collectionsJob;
+    return this.job;
   }
 
   private constructor(cronString: string) {
@@ -27,11 +27,11 @@ export default class CollectionsJob {
         if (this.isRunning) return;
         this.isRunning = true;
         try {
-          logger.info(`Starting CollectionJob`);
-          await collectionsJobService.syncAllCollections();
-          logger.info(`CollectionJob done\n`);
+          logger.info(`Starting jobs`);
+          await jobService.syncAllJobs();
+          logger.info(`Jobs done\n`);
         } catch (error) {
-          console.error("Error while processing CollectionJob:", error);
+          console.error("Error while processing jobs:", error);
         } finally {
           this.isRunning = false;
         }
