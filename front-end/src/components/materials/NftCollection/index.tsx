@@ -1,35 +1,39 @@
 import { Address } from "viem";
 import classes from "./classes.module.scss";
-import {
-	useReadMyNftCollectionName,
-	useReadMyNftCollectionTokenCount,
-} from "@/generated";
 import NftCard from "./NftCard";
+import { useEffect, useState } from "react";
+import CollectionApi from "@/api/CollectionApi";
+import NftCollectionResponseResource from "common/resources/nfts/NftCollectionResponseResource";
 
 type IProps = {
 	address: Address;
 };
 
 export default function NftCollection({ address }: IProps) {
-	const { data: collectionName } = useReadMyNftCollectionName({
-		address,
-	});
+	const [collection, setCollection] = useState<NftCollectionResponseResource | null>(
+		null,
+	);
 
-	const { data: numberOfTokens } = useReadMyNftCollectionTokenCount({
-		address,
-	});
+	useEffect(() => {
+		CollectionApi.getInstance()
+			.getByAddress(address)
+			.then((collection) => {
+				setCollection(collection);
+			});
+	}, [address]);
 
+	if (!collection) return "Loading...";
 	return (
 		<div className={classes.root}>
 			<h1>
-				<span>{collectionName}</span> - <span>{numberOfTokens} tokens</span>
+				<span>{collection.name}</span> -{" "}
+				<span>{collection.tokens.length} tokens</span>
 			</h1>
 			{/* Container des cartes */}
 			<div className={classes["cards-container"]}>
-				{numberOfTokens &&
-					[...Array(parseInt(numberOfTokens.toString()))].map((_, index) => (
-						<NftCard key={index} address={address} tokenId={index} />
-					))}
+				{collection.tokens.map((token) => (
+					<NftCard key={token.id} token={token} />
+				))}
 			</div>
 		</div>
 	);
